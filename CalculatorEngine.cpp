@@ -4,9 +4,6 @@
 
 void CalculatorEngine::updateRomanLiteral(const QString& symbol)
 {
-    if (m_waitingForOperand && m_operandStack.isEmpty()) {
-        m_displayText.clear();
-    }
     m_displayText += symbol;
     m_cachedValue += symbol;
     m_waitingForOperand = false;
@@ -40,6 +37,9 @@ void CalculatorEngine::clear()
 
     m_cachedValue.clear();
     m_displayText.clear();
+
+    m_waitingForOperand = true;
+
     emit displayTextChanged();
 }
 
@@ -50,21 +50,24 @@ QString CalculatorEngine::displayText() const
 
 void CalculatorEngine::addOperator(Operator op, char symbol)
 {
-    if (m_waitingForOperand == true)
-        return;
+    if (m_waitingForOperand && !m_operatorStack.isEmpty()) {
+        m_operatorStack.top() = op;
+        auto lastCharacterIndex = m_displayText.length() - 1;
+        m_displayText[lastCharacterIndex] = symbol;
+    } else if (!m_waitingForOperand) {
+        m_operandStack.push(romanToDecimal(m_cachedValue));
 
-    m_operandStack.push(romanToDecimal(m_cachedValue));
+        m_cachedValue.clear();
+        m_waitingForOperand = true;
 
-    m_cachedValue.clear();
-    m_waitingForOperand = true;
-
-    if (!m_operatorStack.isEmpty() &&
-        (m_operatorStack.top() == Operator::Multiply || m_operatorStack.top() == Operator::Divide)) {
+        if (!m_operatorStack.isEmpty() &&
+                (m_operatorStack.top() == Operator::Multiply || m_operatorStack.top() == Operator::Divide)) {
             evaluateLastExpression();
-    }
+        }
 
-    m_operatorStack.push(op);
-    m_displayText += symbol;
+        m_operatorStack.push(op);
+        m_displayText += symbol;
+    }
 
     emit displayTextChanged();
 }
@@ -76,15 +79,15 @@ void CalculatorEngine::evaluate()
     } else {
         m_displayText.clear();
         m_operandStack.push(romanToDecimal(m_cachedValue));
-        m_cachedValue.clear();
 
         while (!m_operatorStack.empty()) {
             evaluateLastExpression();
         }
 
-        m_displayText = decimalToRoman(m_operandStack.pop());
+        m_displayText = decimalToRoman(m_operandStack.top());
+        m_cachedValue = m_displayText;
+        m_waitingForOperand = false;
 
-        m_waitingForOperand = true;
         emit displayTextChanged();
     }
 }
