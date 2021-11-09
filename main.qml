@@ -1,7 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Window 2.12
-import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.15
+import QtQuick.Controls 2.15 //Button
+import QtQuick.Layouts 1.15 //GridLayout
 
 Window {
     id: root
@@ -23,7 +23,7 @@ Window {
     title: qsTr("Roman Calculator")
 
     Label {
-        id: _display
+        id: display
 
         anchors.top: parent.top
         anchors.topMargin: spacing
@@ -32,14 +32,14 @@ Window {
         anchors.right: parent.right
         anchors.rightMargin: spacing
 
-        text: ""
+        text: calculatorEngine.displayText
         font.pixelSize: 40
         horizontalAlignment: Text.AlignRight
         background: Rectangle {}
     }
 
     GridLayout {
-        id: _operandButtonsGrid
+        id: operandButtonsGrid
 
         columns: 3
 
@@ -57,20 +57,16 @@ Window {
         Repeater {
             model: ["I", "V", "X", "L", "C", "D", "M"]
 
-            Button {
-                id: _operandButton
+            SquareButton {
+                id: operandButton
                 text: modelData
-
-                implicitHeight: buttonSize
-                implicitWidth: buttonSize
-
-                onPressed: _display.text += _operandButton.text
+                onPressed: calculatorEngine.updateRomanLiteral(operandButton.text)
             }
         }
     }
 
     GridLayout {
-        id: _operatorButtonsGrid
+        id: operatorButtonsGrid
 
         columns: 2
 
@@ -85,36 +81,40 @@ Window {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: spacing
 
-        Repeater {
-            model: ["+", "-", "x", "/", "%", "="]
+        SquareButton {
+            id: addButton
+            text: "+"
+            onPressed: calculatorEngine.add();
+        }
 
-            Button {
-                id:  _operatorButton
-                text: modelData
+        SquareButton {
+            id: substructButton
+            text: "-"
+            onPressed: calculatorEngine.substruct();
+        }
 
-                implicitHeight: buttonSize
-                implicitWidth: buttonSize
+        SquareButton {
+            id: multiplyButton
+            text: "*"
+            onPressed: calculatorEngine.multiply();
+        }
 
-                onPressed: _display.text += _operatorButton.text
-            }
+        SquareButton {
+            id: divideButton
+            text: "/"
+            onPressed: calculatorEngine.divide();
+        }
+
+        SquareButton {
+            id: clearButton
+            text: "Clear"
+            onPressed: calculatorEngine.clear();
+        }
+
+        SquareButton {
+            id:  equalButton
+            text: "="
+            onPressed: calculatorEngine.evaluate();
         }
     }
-
-//    Rectangle {
-//        id: _operandButtonsFrame
-
-//        anchors.fill: _operandButtonsGrid
-//        color: "transparent"
-//        border.color: "grey"
-//        border.width: 1
-//    }
-
-//    Rectangle {
-//        id:_operatorButtonsFrame
-
-//        anchors.fill: _operatorButtonsGrid
-//        color: "transparent"
-//        border.color: "grey"
-//        border.width: 1
-//    }
 }
